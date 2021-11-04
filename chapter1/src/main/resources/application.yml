@@ -4,6 +4,24 @@ server:
 spring:
   profiles:
     active: local
+    group:
+      local:
+        - n-service
+        - d-service
+
+logging:
+  level:
+    org:
+      hibernate:
+        sql: debug
+        type: trace
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: n-service
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,9 +34,22 @@ spring:
       mode: always
       schema-locations: schema.sql
 
-logging:
-  level:
-    org:
-      hibernate:
-        sql: debug
-        type: trace
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: d-service
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3310/user-db
+    username: root
+    password: 1234
+
+  sql:
+    init:
+      mode: always
+      schema-locations: schema.sql
+
