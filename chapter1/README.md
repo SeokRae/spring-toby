@@ -147,4 +147,65 @@ seok_id : 조회 성공
     - 장점들이 앞으로 어떠한 유익함을 줄 것인가?
     - 객체지향 설계의 원칙과 어떠한 상관이 있을까?
     - DAO를 개선하는 경우와 그대로 사용하는 경우, 스프링을 사용하는 개발에서 무슨 차이가 있을까?
-    
+
+## 1.2 DAO의 분리
+
+### 1.2.1 관심사의 분리
+
+> **객체지향의 세계에 대한 고민**
+
+- 시간에 따라 사용자의 비즈니스 프로세스는 변한다.
+- 애플리케이션이 기반을 두고 있는 기술도 변하고, 운영되는 환경도 변한다.
+
+- 개발자가 객체를 설계할 때 가장 염두에 둬야 할 사항이 바로 `미래의 변화를 어떻게 대비`할 것인가이다.
+
+> **객체 지향은 `분리와 확장`을 고려한 설계를 갖기 때문에 변화에 대비할 수 있다.**
+
+- 분리
+    - 변화는 대체로 집중된 한 가지 관심에 대해 일어난다.
+    - 우리가 준비해야 할 일은 한 가지 관심이 한 군데에 집중되도록 하는 것이다.
+    - 이를 `관심사의 분리(Seperation of Concerns)`라 한다.
+        - 관심이 같은 것은 하나의 객체 안으로 또는 친한 객체로 모이게 하고, 관심이 다른 것은 가능한 따로 떨어져서 서로 영향을 주지 않도록 분리하는 것이라 생각할 수 있다.
+
+### 1.2.2 커넥션 만들기의 추출
+
+지금까지 작성한 내용 중에 add() 메서드안에 세 가지 관심사항이 존재한다는 것을 발견할 수 있을까?
+
+> **UserDao의 관심사항**
+
+1. **커넥션 연결**
+    - DB와 연결을 위한 커넥션을 어떻게 가져올까라는 관심
+2. **파라미터 바인딩**
+    - 파라미터로 넘어온 사용자 정보를 Statement에 바인딩시키고, Statement에 담긴 SQL을 DB를 통해 실행시키는 관심
+3. **리소스 반환**
+    - 작업이 끝나면 리소스를 닫아 시스템에 돌려주는 관심
+
+> **핵심 관심사**
+
+DB 연결을 위해 Connection 오브젝트를 가져오는 부분은 필수로 추가되어야 하는 핵심적인 공통 코드라 볼 수 있다.
+
+- 이러한 핵심 관심사를 분리하기 위해 `리펙토링` 하는 방식을 `메서드 추출`이라 한다.
+    - 관심 내용이 독립적으로 존재하므로 변경에 대한 수정이 간단해졌다.
+
+* 리펙토링
+    - 기존의 코드를 외부의 동작방식에는 변화 없이 내부 구조를 변경해서 재구성하는 작업 또는 기술
+
+```java
+public class UserDao {
+    public void add(User user) throws ClassNotFoundException, SQLException {
+        Connection c = getConnection();
+        // ...
+    }
+
+    public User get(String id) throws SQLException, ClassNotFoundException {
+        Connection c = getConnection();
+        // ...
+    }
+
+    // 추출된 공통 관심 메서드
+    private Connection getConnection() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection("jdbc:mysql://localhost:3309/user-db", "root", "1234");
+    }
+}
+```
