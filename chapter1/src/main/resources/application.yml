@@ -6,21 +6,15 @@ spring:
     active: local
 
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:userdb;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3309/user-db
+    username: root
+    password: 1234
 
-  jpa:
-    show-sql: true
-    open-in-view: false
-    hibernate:
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-      ddl-auto: create
-    properties:
-      hibernate:
-        format_sql: true
+  sql:
+    init:
+      mode: always
+      schema-locations: schema.sql
 
 logging:
   level:
