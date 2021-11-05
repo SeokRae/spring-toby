@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class DUserDaoTest {
 
     @DisplayName("D 회사 인사 정보 시스템 요청")
@@ -20,12 +22,8 @@ class DUserDaoTest {
 
         dao.add(user);
 
-        System.out.println("등록 성공 : " + user.getId());
-
         User user2 = dao.get(user.getId());
-        System.out.println("사용자 명: " + user2.getName());
-        System.out.println("사용자 비밀번호: " + user2.getPassword());
 
-        System.out.println(user2.getId() + " : 조회 성공");
+        assertThat(user).isEqualTo(user2);
     }
 }
