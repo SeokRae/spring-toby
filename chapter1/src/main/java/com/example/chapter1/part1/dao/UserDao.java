@@ -8,13 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UserDao {
-
     private final ConnectionMaker connectionMaker;
 
     public UserDao(ConnectionMaker connectionMaker) {
         this.connectionMaker = connectionMaker;
     }
-    //    public abstract Connection getConnection() throws SQLException, ClassNotFoundException;
 
     public void add(User user) throws ClassNotFoundException, SQLException {
         Connection c = connectionMaker.makeConnection();

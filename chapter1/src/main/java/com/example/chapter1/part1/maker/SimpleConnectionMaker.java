@@ -1,4 +1,4 @@
-package com.example.chapter1.part1.dao;
+package com.example.chapter1.part1.maker;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
