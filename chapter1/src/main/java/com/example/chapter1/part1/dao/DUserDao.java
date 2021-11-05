@@ -2,19 +2,16 @@ package com.example.chapter1.part1.dao;
 
 import com.example.chapter1.part1.domain.User;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DUserDao extends UserDao {
-    @Override
-    public Connection getConnection() throws SQLException, ClassNotFoundException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        return DriverManager.getConnection("jdbc:mysql://localhost:3310/user-db", "root", "1234");
+
+    public DUserDao(ConnectionMaker dConnectionMaker) {
+        super(dConnectionMaker);
     }
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        UserDao dao = new DUserDao();
+        UserDao dao = new DUserDao(new DConnectionMaker());
 
         User user = new User();
         user.setId("seok_id");
