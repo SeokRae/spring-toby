@@ -292,3 +292,54 @@ public class UserDao {
 `상속`을 통해 `관심이 다른 기능을 분리`하고, 필요에 따라 다양한 변신이 가능하도록 확장성도 줬지만 여전히 `상속관계`는 두 가지 다른 관심사에 대한 긴밀한 결합을 허용한다.
 이는 `슈퍼클래스에 변경사항이 일어나는 경우` 서브 클래스를 함께 수정하거나 다시 개발해야 하는 문제를 발생시킬 수 있다.
 
+## 1.3 DAO의 확장
+
+`관심사`에 따라서 분리한 오브젝트들은 제각기 독특한 `변화의 특징`이 있다.
+
+`변화의 성격이 다르다`는 건 변화의 `이유`와 `시기`, `주기` 등이 다르다는 뜻이다.
+
+`추상 클래스`를 만들고 이를 상속한 서브클래스에서 `변화가 필요한 부분`을 바꿔서 쓸 수 있게 만든 이유는 이런 변화의 성격이 다른 것을 분리해서, `서로 영향을 주지 않은 채`로 각각 필요한
+시점에 `독립적으로 변경`할 수 있게 하기 위해서이다.
+
+지금까지 `상속이라는 방법`을 통해 확장을 했는데 이는 여전히 문제이다.
+
+### 1.3.1 클래스의 분리
+
+`두 개의 관심사`를 본격적으로 `독립`시키면서 동시에 `손쉽게 확장하는 방법`에 대해서 고민해본다.
+
+- 관심사를 분리하는 작업
+    1. 독립된 메소드를 만들어서 분리
+    2. 상하위 클래스로 분리
+    3. `상속관계도 아닌 완전히 독립적인 클래스로 만든다.`
+
+```java
+public class UserDao {
+    private final SimpleConnectionMaker connectionMaker;
+    public UserDao() {
+        this.connectionMaker = new SimpleConnectionMaker();
+    }
+    public void add(User user) throws ClassNotFoundException, SQLException {
+        Connection c = connectionMaker.makeNewConnection();
+    }
+    public User get(String id) throws SQLException, ClassNotFoundException {
+        Connection c = connectionMaker.makeConnection();
+    }
+} 
+```
+
+SimpleConnectionMaker 라는 새로운 클래스를 만들고 DB 생성 기능을 그 안에 넣는다.
+
+한 번만 SimpleConnectionMaker 오브젝트를 만들어 저장해두고 이를 계속 사용하는 편이 낫다.
+
+- DB 커넥션 생성 기능을 독립시킨 SimpleConnectionMaker
+
+```java
+public class SimpleConnectionMaker {
+    public Connection makeNewConnection() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection("jdbc:mysql://localhost:3310/user-db", "root", "1234");
+    }
+}
+```
+
+기능의 변화가 없다는 것은 리펙토링 작업의 전제이지만 사실 검증 내용이기도 하다.                                                                                                                               

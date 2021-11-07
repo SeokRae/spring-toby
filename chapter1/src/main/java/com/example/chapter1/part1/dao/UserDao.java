@@ -2,10 +2,7 @@ package com.example.chapter1.part1.dao;
 
 import com.example.chapter1.part1.domain.User;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class UserDao {
     private final ConnectionMaker connectionMaker;
@@ -47,5 +44,15 @@ public class UserDao {
         c.close();
 
         return user;
+    }
+
+    public void del() throws SQLException, ClassNotFoundException {
+        Connection c = connectionMaker.makeConnection();
+
+        Statement s = c.createStatement();
+        s.executeUpdate("TRUNCATE TABLE USERS");
+
+        s.close();
+        c.close();
     }
 }
