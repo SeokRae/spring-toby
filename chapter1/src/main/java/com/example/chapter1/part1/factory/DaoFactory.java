@@ -1,8 +1,6 @@
 package com.example.chapter1.part1.factory;
 
-import com.example.chapter1.part1.dao.DConnectionMaker;
-import com.example.chapter1.part1.dao.NConnectionMaker;
-import com.example.chapter1.part1.dao.UserDao;
+import com.example.chapter1.part1.dao.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
