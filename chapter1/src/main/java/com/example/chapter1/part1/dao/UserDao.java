@@ -5,6 +5,7 @@ import com.example.chapter1.part1.domain.User;
 import java.sql.*;
 
 public class UserDao {
+
     private final ConnectionMaker connectionMaker;
 
     public UserDao(ConnectionMaker connectionMaker) {

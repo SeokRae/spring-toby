@@ -1,6 +1,8 @@
 package com.example.chapter1.part1.factory;
 
-import com.example.chapter1.part1.dao.*;
+import com.example.chapter1.part1.dao.DConnectionMaker;
+import com.example.chapter1.part1.dao.NConnectionMaker;
+import com.example.chapter1.part1.dao.UserDao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,6 +13,7 @@ public class DaoFactory {
     public UserDao dUserDao() {
         return new UserDao(dConnectionMaker());
     }
+
     @Bean
     public UserDao nUserDao() {
         return new UserDao(nConnectionMaker());
@@ -20,6 +23,7 @@ public class DaoFactory {
     public DConnectionMaker dConnectionMaker() {
         return new DConnectionMaker();
     }
+
     @Bean
     public NConnectionMaker nConnectionMaker() {
         return new NConnectionMaker();

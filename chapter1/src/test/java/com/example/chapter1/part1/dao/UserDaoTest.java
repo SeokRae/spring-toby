@@ -2,7 +2,6 @@ package com.example.chapter1.part1.dao;
 
 import com.example.chapter1.part1.domain.User;
 import com.example.chapter1.part1.factory.DaoFactory;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;

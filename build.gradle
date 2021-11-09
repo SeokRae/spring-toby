@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "io.spring.gradle:dependency-management-plugin:1.0.10.RELEASE"
     }
 }
@@ -60,6 +60,9 @@ subprojects {
 
 project(":chapter1") {
     dependencies {
+        // Driver.class 호출하기 위한 implementation 설정
+        implementation 'mysql:mysql-connector-java'
+
         implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
         runtimeOnly 'mysql:mysql-connector-java'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
