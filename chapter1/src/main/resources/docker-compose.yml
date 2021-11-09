@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+  n-db:
+    image: mysql:latest
+    container_name: n-db
+    restart: always
+    ports:
+      - "3309:3306"
+    environment:
+      - MYSQL_DATABASE=user-db
+      - MYSQL_ROOT_PASSWORD=1234
+      - TZ=Asia/Seoul
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+  d-db:
+    image: mysql:latest
+    container_name: d-db
+    restart: always
+    ports:
+      - "3310:3306"
+    environment:
+      - MYSQL_DATABASE=user-db
+      - MYSQL_ROOT_PASSWORD=1234
+      - TZ=Asia/Seoul
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+  dev-db:
+    image: mysql:latest
+    container_name: dev-db
+    restart: always
+    ports:
+      - "3311:3306"
+    environment:
+      - MYSQL_DATABASE=user-db
+      - MYSQL_ROOT_PASSWORD=1234
+      - TZ=Asia/Seoul
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+  prod-db:
+    image: mysql:latest
+    container_name: prod-db
+    restart: always
+    ports:
+      - "3312:3306"
+    environment:
+      - MYSQL_DATABASE=user-db
+      - MYSQL_ROOT_PASSWORD=1234
+      - TZ=Asia/Seoul
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
