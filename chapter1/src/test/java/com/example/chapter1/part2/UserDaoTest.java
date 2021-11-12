@@ -23,7 +23,11 @@ class UserDaoTest {
     @DisplayName("DataSource 인터페이스를 사용한 테스트")
     @Test
     void testCase1() throws SQLException {
+
         UserDao userDao = new UserDao(dataSource);
+
+        userDao.truncateTable();
+        assertThat(userDao.getCount()).isZero();
 
         User actual = new User();
         actual.setId("user_id");
@@ -32,9 +36,9 @@ class UserDaoTest {
 
         userDao.add(actual);
 
-        User expected = userDao.get("user_id");
+        assertThat(userDao.getCount()).isOne();
 
-        userDao.del();
+        User expected = userDao.get("user_id");
 
         assertThat(actual).isEqualTo(expected);
     }

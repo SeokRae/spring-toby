@@ -44,7 +44,18 @@ public class UserDao {
         }
     }
 
-    public void del() throws SQLException {
+    public int getCount() throws SQLException {
+        try (
+                Connection c = dataSource.getConnection();
+                PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM USERS");
+        ) {
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+        }
+    }
+
+    public void truncateTable() throws SQLException {
         try (
                 Connection c = dataSource.getConnection();
                 Statement s = c.createStatement()
