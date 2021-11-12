@@ -1,0 +1,17 @@
+server:
+  port: 8000
+
+spring:
+  profiles:
+    active: local
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3309/user-db
+    username: root
+    password: 1234
+
+  sql:
+    init:
+      mode: always
+      schema-locations: schema.sql
