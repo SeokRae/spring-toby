@@ -1,8 +1,6 @@
 package com.example.chapter2.dao;
 
 import com.example.chapter2.domain.User;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
