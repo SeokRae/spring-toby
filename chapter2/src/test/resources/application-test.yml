@@ -3,7 +3,11 @@ server:
 
 spring:
   profiles:
+<<<<<<< HEAD
     active: local
+=======
+    active: test
+>>>>>>> feat/chapter-2-refactor
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -11,9 +15,18 @@ spring:
     username: root
     password: 1234
 
+<<<<<<< HEAD
 logging:
   level:
     org:
       hibernate:
         sql: debug
         type: trace
+=======
+#logging:
+#  level:
+#    org:
+#      hibernate:
+#        sql: debug
+#        type: trace
+>>>>>>> feat/chapter-2-refactor
