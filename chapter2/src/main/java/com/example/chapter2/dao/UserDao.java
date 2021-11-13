@@ -1,6 +1,7 @@
-package com.example.chapter1.part2;
+package com.example.chapter2.dao;
 
-import com.example.chapter1.part1.domain.User;
+import com.example.chapter2.domain.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -34,12 +35,18 @@ public class UserDao {
             ps.setString(1, id);
             ResultSet rs = ps.executeQuery();
 
-            rs.next();
+            User user = null;
 
-            User user = new User();
-            user.setId(rs.getString("id"));
-            user.setName(rs.getString("name"));
-            user.setPassword(rs.getString("password"));
+            if(rs.next()) {
+                user = new User();
+                user.setId(rs.getString("id"));
+                user.setName(rs.getString("name"));
+                user.setPassword(rs.getString("password"));
+            }
+
+            if(user == null) {
+                throw new EmptyResultDataAccessException(1);
+            }
             return user;
         }
     }
