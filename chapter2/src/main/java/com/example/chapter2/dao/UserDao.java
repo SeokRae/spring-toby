@@ -1,6 +1,8 @@
 package com.example.chapter2.dao;
 
 import com.example.chapter2.domain.User;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
@@ -37,14 +39,14 @@ public class UserDao {
 
             User user = null;
 
-            if(rs.next()) {
+            if (rs.next()) {
                 user = new User();
                 user.setId(rs.getString("id"));
                 user.setName(rs.getString("name"));
                 user.setPassword(rs.getString("password"));
             }
 
-            if(user == null) {
+            if (user == null) {
                 throw new EmptyResultDataAccessException(1);
             }
             return user;
@@ -54,7 +56,7 @@ public class UserDao {
     public int getCount() throws SQLException {
         try (
                 Connection c = dataSource.getConnection();
-                PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM USERS");
+                PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM USERS")
         ) {
             ResultSet rs = ps.executeQuery();
             rs.next();

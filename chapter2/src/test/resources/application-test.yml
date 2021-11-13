@@ -3,7 +3,7 @@ server:
 
 spring:
   profiles:
-    active: local
+    active: test
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -11,9 +11,9 @@ spring:
     username: root
     password: 1234
 
-logging:
-  level:
-    org:
-      hibernate:
-        sql: debug
-        type: trace
+#logging:
+#  level:
+#    org:
+#      hibernate:
+#        sql: debug
+#        type: trace
