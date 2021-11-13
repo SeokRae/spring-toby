@@ -37,22 +37,14 @@ public class UserDao {
 
             User user = null;
 
-<<<<<<< HEAD
-            if(rs.next()) {
-=======
             if (rs.next()) {
->>>>>>> feat/chapter-2-refactor
                 user = new User();
                 user.setId(rs.getString("id"));
                 user.setName(rs.getString("name"));
                 user.setPassword(rs.getString("password"));
             }
 
-<<<<<<< HEAD
-            if(user == null) {
-=======
             if (user == null) {
->>>>>>> feat/chapter-2-refactor
                 throw new EmptyResultDataAccessException(1);
             }
             return user;
@@ -62,11 +54,7 @@ public class UserDao {
     public int getCount() throws SQLException {
         try (
                 Connection c = dataSource.getConnection();
-<<<<<<< HEAD
-                PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM USERS");
-=======
                 PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM USERS")
->>>>>>> feat/chapter-2-refactor
         ) {
             ResultSet rs = ps.executeQuery();
             rs.next();
