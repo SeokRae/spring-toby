@@ -42,6 +42,7 @@ class UserDaoTest {
     @DisplayName("테이블 데이터 등록 및 조회 테스트")
     @Test
     void testCase1() throws SQLException {
+
         assertThat(userDao.getCount()).isZero();
 
         userDao.add(user1);
