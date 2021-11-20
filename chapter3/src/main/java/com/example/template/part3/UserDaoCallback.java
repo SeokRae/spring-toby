@@ -1,13 +1,10 @@
 package com.example.template.part3;
 
 import com.example.template.part1.User;
-import com.example.template.part1.strategy.StatementStrategy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;

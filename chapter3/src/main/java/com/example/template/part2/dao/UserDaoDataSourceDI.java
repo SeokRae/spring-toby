@@ -3,17 +3,21 @@ package com.example.template.part2.dao;
 import com.example.template.part1.User;
 import com.example.template.part1.strategy.StatementStrategy;
 import com.example.template.part2.context.JdbcContext;
+import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+@Configuration
 public class UserDaoDataSourceDI {
+
     private final JdbcContext context;
 
     public UserDaoDataSourceDI(DataSource dataSource) {
-        this.context = new JdbcContext(dataSource);
+        this.context = new JdbcContext();
+        context.setDataSource(dataSource);
     }
 
     public void add(User user) throws SQLException {
