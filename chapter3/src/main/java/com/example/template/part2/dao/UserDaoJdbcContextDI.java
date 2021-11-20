@@ -5,6 +5,7 @@ import com.example.template.part1.strategy.AddStatement;
 import com.example.template.part1.strategy.StatementStrategy;
 import com.example.template.part1.strategy.TruncateStatement;
 import com.example.template.part2.context.JdbcContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
@@ -42,13 +43,6 @@ public class UserDaoJdbcContextDI {
     }
 
     public void truncateTable() throws SQLException {
-        this.context.workWithStatementStrategy(
-                new StatementStrategy() {
-                    @Override
-                    public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
-                        return c.prepareStatement("TRUNCATE TABLE USERS");
-                    }
-                }
-        );
+        this.context.executeSql("TRUNCATE TABLE USERS");
     }
 }

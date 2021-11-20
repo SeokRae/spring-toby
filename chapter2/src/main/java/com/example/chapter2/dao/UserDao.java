@@ -30,7 +30,7 @@ public class UserDao {
     public User get(String id) throws SQLException {
         try (
                 Connection c = dataSource.getConnection();
-                PreparedStatement ps = c.prepareStatement("SELECT * FROM USERS WHERE id = ?")
+                PreparedStatement ps = makeStatement(c);
         ) {
             ps.setString(1, id);
             ResultSet rs = ps.executeQuery();
@@ -49,6 +49,10 @@ public class UserDao {
             }
             return user;
         }
+    }
+
+    private PreparedStatement makeStatement(Connection c) throws SQLException {
+        return c.prepareStatement("SELECT * FROM USERS WHERE id = ?");
     }
 
     public int getCount() throws SQLException {
