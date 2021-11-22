@@ -79,7 +79,18 @@ project(":chapter2") {
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 }
+
 project(":chapter3") {
+    dependencies {
+        // Driver.class 호출하기 위한 implementation 설정
+        implementation 'mysql:mysql-connector-java'
+
+        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+        runtimeOnly 'mysql:mysql-connector-java'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+}
+project(":chapter4") {
     dependencies {
         // Driver.class 호출하기 위한 implementation 설정
         implementation 'mysql:mysql-connector-java'
