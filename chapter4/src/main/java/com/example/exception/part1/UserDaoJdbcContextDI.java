@@ -1,23 +1,18 @@
-package com.example.template.part2.dao;
+package com.example.exception.part1;
 
-import com.example.template.part1.User;
-import com.example.template.part1.strategy.StatementStrategy;
-import com.example.template.part2.context.JdbcContext;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-@Configuration
-public class UserDaoDataSourceDI {
+@Component
+public class UserDaoJdbcContextDI {
 
     private final JdbcContext context;
 
-    public UserDaoDataSourceDI(DataSource dataSource) {
-        this.context = new JdbcContext();
-        context.setDataSource(dataSource);
+    public UserDaoJdbcContextDI(JdbcContext context) {
+        this.context = context;
     }
 
     public void add(User user) throws SQLException {
@@ -43,5 +38,4 @@ public class UserDaoDataSourceDI {
     public void truncateTable() throws SQLException {
         this.context.executeSql("TRUNCATE TABLE USERS");
     }
-
 }

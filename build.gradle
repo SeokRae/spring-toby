@@ -92,11 +92,12 @@ project(":chapter3") {
 }
 project(":chapter4") {
     dependencies {
-        // Driver.class 호출하기 위한 implementation 설정
-        implementation 'mysql:mysql-connector-java'
+        // Driver.class 호출을 위한 의존성
+        implementation 'com.h2database:h2'
+
+        runtimeOnly 'com.h2database:h2'
 
         implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-        runtimeOnly 'mysql:mysql-connector-java'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 }
