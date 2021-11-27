@@ -7,3 +7,5 @@
 [2. 테스트](chapter2/README.md)
 
 [3. 템플릿](chapter3/README.md)
+
+[4. 예외](chapter4/README.md)
