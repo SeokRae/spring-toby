@@ -10,7 +10,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class UserDaoCallback {
-    private RowMapper<User> userMapper =
+
+    private final JdbcTemplate jdbcTemplate;
+    private final RowMapper<User> userMapper =
             new RowMapper<User>() {
                 @Override
                 public User mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -22,15 +24,13 @@ public class UserDaoCallback {
                 }
             };
 
-    private JdbcTemplate jdbcTemplate;
-
     public UserDaoCallback(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     public void add(User user) {
         this.jdbcTemplate.update(
-                "insert into users(id, name, password) values(?, ?, ?)"
+                "insert into USERS(id, name, password) values(?, ?, ?)"
                 , user.getId()
                 , user.getName()
                 , user.getPassword()
@@ -39,19 +39,19 @@ public class UserDaoCallback {
 
     public User get(String id) {
         return this.jdbcTemplate.queryForObject(
-                "select * from users where id = ?"
+                "select * from USERS where id = ?"
                 , new Object[]{id}
                 , this.userMapper
         );
     }
 
     public void deleteAll() {
-        this.jdbcTemplate.update("delete from users");
+        this.jdbcTemplate.update("delete from USERS");
     }
 
     public int getCount() {
         return this.jdbcTemplate.query(
-                "select count(*) from users"
+                "select count(*) from USERS"
                 ,
                 rs -> {
                     rs.next();
@@ -62,7 +62,7 @@ public class UserDaoCallback {
 
     public List<User> getAll() {
         return this.jdbcTemplate.query(
-                "select * from users order by id"
+                "select * from USERS order by id"
                 , this.userMapper
         );
     }

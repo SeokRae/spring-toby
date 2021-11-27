@@ -41,14 +41,7 @@ public class UserDaoDataSourceDI {
     }
 
     public void truncateTable() throws SQLException {
-        this.context.workWithStatementStrategy(
-                new StatementStrategy() {
-                    @Override
-                    public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
-                        return c.prepareStatement("TRUNCATE TABLE USERS");
-                    }
-                }
-        );
+        this.context.executeSql("TRUNCATE TABLE USERS");
     }
 
 }
