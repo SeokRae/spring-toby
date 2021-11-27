@@ -34,8 +34,14 @@ subprojects {
     }
 
     dependencies {
+        implementation 'mysql:mysql-connector-java'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
+
+        runtimeOnly 'mysql:mysql-connector-java'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 
     test {
@@ -60,44 +66,24 @@ subprojects {
 
 project(":chapter1") {
     dependencies {
-        // Driver.class 호출하기 위한 implementation 설정
-        implementation 'mysql:mysql-connector-java'
 
-        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-        runtimeOnly 'mysql:mysql-connector-java'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 }
 
 project(":chapter2") {
     dependencies {
-        // Driver.class 호출하기 위한 implementation 설정
-        implementation 'mysql:mysql-connector-java'
 
-        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-        runtimeOnly 'mysql:mysql-connector-java'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 }
 
 project(":chapter3") {
     dependencies {
-        // Driver.class 호출하기 위한 implementation 설정
-        implementation 'mysql:mysql-connector-java'
 
-        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-        runtimeOnly 'mysql:mysql-connector-java'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 }
+
 project(":chapter4") {
     dependencies {
-        // Driver.class 호출을 위한 의존성
-        implementation 'com.h2database:h2'
 
-        runtimeOnly 'com.h2database:h2'
-
-        implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 }

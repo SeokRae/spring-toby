@@ -1,4 +1,4 @@
-package com.example.exception.part1;
+package com.example.exception.part1.strategy;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

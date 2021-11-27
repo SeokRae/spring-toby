@@ -1,7 +1,7 @@
-package com.example.exception.part1;
+package com.example.exception.part2;
 
 import com.example.exception.config.DataSourceConfig;
-import org.junit.jupiter.api.BeforeAll;
+import com.example.exception.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,26 +12,24 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.sql.SQLException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         DataSourceConfig.class,
-        JdbcContext.class,
-        UserDaoJdbcContextDI.class
+        UserDaoJdbc.class
 })
-class UserDaoJdbcContextDITest {
+class UserDaoTest {
 
     @Autowired
-    private UserDaoJdbcContextDI userDao;
-
+    private UserDao userDao;
     private User user1;
     private User user2;
     private User user3;
 
     @BeforeEach
     void setUp() throws SQLException {
-
         userDao.truncateTable();
-
         user1 = new User("user_0", "user_name_0", "1234");
         user2 = new User("user_1", "user_name_1", "1234");
         user3 = new User("user_2", "user_name_2", "1234");
@@ -39,7 +37,17 @@ class UserDaoJdbcContextDITest {
 
     @DisplayName("사용자 등록 테스트")
     @Test
-    void testCase1() {
+    void testCase1() throws SQLException {
+        assertThat(userDao.getCount()).isZero();
 
+        userDao.add(user1);
+        userDao.add(user2);
+        assertThat(userDao.getCount()).isEqualTo(2);
+
+        User expected1 = userDao.get(user1.getId());
+        assertThat(user1.getName()).isEqualTo(expected1.getName());
+
+        User expected2 = userDao.get(user2.getId());
+        assertThat(user2.getName()).isEqualTo(expected2.getName());
     }
 }

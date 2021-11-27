@@ -1,4 +1,4 @@
-package com.example.exception.part1;
+package com.example.exception.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
