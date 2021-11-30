@@ -34,7 +34,6 @@ subprojects {
     }
 
     dependencies {
-        implementation 'mysql:mysql-connector-java'
         implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 
         compileOnly 'org.projectlombok:lombok'
@@ -83,6 +82,12 @@ project(":chapter3") {
 }
 
 project(":chapter4") {
+    dependencies {
+
+    }
+}
+
+project(":chapter5") {
     dependencies {
 
     }
