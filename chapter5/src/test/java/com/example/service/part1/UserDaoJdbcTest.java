@@ -11,17 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.sql.SQLException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         DataSourceConfig.class,
-        UserDao.class
+        UserDaoJdbc.class
 })
-class UserDaoTest {
+class UserDaoJdbcTest {
 
     @Autowired
     private UserDao userDao;
@@ -39,7 +37,7 @@ class UserDaoTest {
 
     @DisplayName("사용자 등록 테스트")
     @Test
-    void user_register_test_expected_new_user() throws SQLException {
+    void user_register_test_expected_new_user() {
 
         assertThat(userDao.getCount()).isZero();
 
@@ -63,5 +61,24 @@ class UserDaoTest {
         assertThat(actual.getLevel()).isEqualTo(expected.getLevel());
         assertThat(actual.getLogin()).isEqualTo(expected.getLogin());
         assertThat(actual.getRecommend()).isEqualTo(expected.getRecommend());
+    }
+
+    @DisplayName("사용자 정보 수정 테스트")
+    @Test
+    void user_update_expected_updated_user_info() {
+
+        assertThat(userDao.getCount()).isZero();
+
+        userDao.add(user1);
+
+        user1.setName("seok");
+        user1.setPassword("1234");
+        user1.setLogin(1000);
+        user1.setRecommend(999);
+        user1.setLevel(Level.GOLD);
+        userDao.update(user1);
+
+        User user = userDao.get(user1.getId());
+        checkSameUser(user1, user);
     }
 }
