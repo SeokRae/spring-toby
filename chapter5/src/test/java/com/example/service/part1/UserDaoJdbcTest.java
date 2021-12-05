@@ -81,4 +81,27 @@ class UserDaoJdbcTest {
         User user = userDao.get(user1.getId());
         checkSameUser(user1, user);
     }
+
+    @DisplayName("사용자 정보 수정시 다른 사용자의 정보까지 침범하지 않았는지 확인하는 테스트")
+    @Test
+    void user_update_expected_updated_single_user_info() {
+
+        assertThat(userDao.getCount()).isZero();
+
+        userDao.add(user1);
+        userDao.add(user2);
+
+        user1.setName("seok");
+        user1.setPassword("1234");
+        user1.setLogin(1000);
+        user1.setRecommend(999);
+        user1.setLevel(Level.GOLD);
+        userDao.update(user1);
+
+        User expected1 = userDao.get(user1.getId());
+        checkSameUser(user1, expected1);
+        User expected2 = userDao.get(user2.getId());
+        checkSameUser(user2, expected2);
+    }
+
 }
