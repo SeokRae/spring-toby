@@ -2,8 +2,12 @@ package com.example.service.part1;
 
 import com.example.service.domain.Level;
 import com.example.service.domain.User;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.sql.DataSource;
@@ -27,7 +31,9 @@ public class UserService {
     }
 
     public void upgradeLevels() throws SQLException {
-        TransactionSynchronizationManager.initSynchronization();
+        PlatformTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+
+        TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
         Connection c = DataSourceUtils.getConnection(dataSource);
         c.setAutoCommit(false);
 
@@ -40,14 +46,10 @@ public class UserService {
                 }
             }
 
-            c.commit();
+            transactionManager.commit(status);
         } catch (Exception e) {
-            c.rollback();
+            transactionManager.rollback(status);
             throw e;
-        } finally {
-            DataSourceUtils.releaseConnection(c, dataSource);
-            TransactionSynchronizationManager.unbindResource(this.dataSource);
-            TransactionSynchronizationManager.clearSynchronization();
         }
     }
 
