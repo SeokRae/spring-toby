@@ -21,8 +21,8 @@ class UserTest {
     void upgrade_level() {
         Level[] levels = Level.values();
 
-        for(Level level : levels) {
-            if(level.nextLevel() == null) continue;
+        for (Level level : levels) {
+            if (level.nextLevel() == null) continue;
             user.setLevel(level);
 
             user.upgradeLevel();
@@ -34,8 +34,8 @@ class UserTest {
     @Test
     void cannotUpgradeLevel() {
         Level[] levels = Level.values();
-        for(Level level : levels) {
-            if(level.nextLevel() != null) continue;
+        for (Level level : levels) {
+            if (level.nextLevel() != null) continue;
             user.setLevel(level);
             assertThatExceptionOfType(IllegalStateException.class)
                     .isThrownBy(() -> user.upgradeLevel());

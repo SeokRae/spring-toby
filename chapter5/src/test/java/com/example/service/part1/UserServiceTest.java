@@ -3,6 +3,7 @@ package com.example.service.part1;
 import com.example.service.config.DataSourceConfig;
 import com.example.service.domain.Level;
 import com.example.service.domain.User;
+import com.example.service.exception.TestUserServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.util.List;
 import static com.example.service.part1.UserService.MIN_LOGCOUNT_FOR_SILVER;
 import static com.example.service.part1.UserService.MIN_RECCOMEND_FOR_GOLD;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
@@ -36,6 +38,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        userService.setUserDao(userDao);
         userDao.deleteAll();
         users = Arrays.asList(
                 new User("user1", "username1", "u1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0)
@@ -110,10 +113,27 @@ class UserServiceTest {
     private void checkLevelUpgraded(User user, boolean upgraded) {
         User userUpdate = userDao.get(user.getId());
 
-        if(upgraded) {
+        if (upgraded) {
             assertThat(userUpdate.getLevel()).isEqualTo(user.getLevel().nextLevel());
         } else {
             assertThat(userUpdate.getLevel()).isEqualTo(user.getLevel());
         }
+    }
+
+    @DisplayName("트랜잭션을 검증하기 위한 테스트")
+    @Test
+    void upgradeAllOrNothing() {
+        UserService testUserService = new TestUserService(users.get(3).getId());
+        testUserService.setUserDao(this.userDao);
+
+        userDao.deleteAll();
+        for (User user : users) {
+            userDao.add(user);
+        }
+
+        assertThatExceptionOfType(TestUserServiceException.class)
+                .isThrownBy(testUserService::upgradeLevels);
+
+        checkLevelUpgraded(users.get(1), false);
     }
 }
