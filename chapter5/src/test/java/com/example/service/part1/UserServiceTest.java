@@ -9,11 +9,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,6 +31,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 })
 class UserServiceTest {
 
+    private PlatformTransactionManager transactionManager;
+
     @Autowired
     private UserService userService;
 
@@ -43,7 +46,9 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        transactionManager = new DataSourceTransactionManager(dataSource);
         userService.setUserDao(userDao);
+        userService.setTransactionManager(transactionManager);
         userDao.deleteAll();
         users = Arrays.asList(
                 new User("user1", "username1", "u1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0)
@@ -62,7 +67,7 @@ class UserServiceTest {
 
     @DisplayName("사용자 레벨 업그레이드 테스트")
     @Test
-    void user_level_update_expected_success() throws SQLException {
+    void user_level_update_expected_success() {
         for (User user : users) {
             userDao.add(user);
         }
@@ -101,7 +106,7 @@ class UserServiceTest {
 
     @DisplayName("Level 필드 개선 테스트")
     @Test
-    void upgrade_levels() throws SQLException {
+    void upgrade_levels() {
         for (User user : users) {
             userDao.add(user);
         }
@@ -130,7 +135,7 @@ class UserServiceTest {
     void upgradeAllOrNothing() {
         UserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(this.userDao);
-        testUserService.setDataSource(dataSource);
+        testUserService.setTransactionManager(transactionManager);
 
         userDao.deleteAll();
         for (User user : users) {
