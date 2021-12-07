@@ -30,9 +30,9 @@ class UserDaoJdbcTest {
     @BeforeEach
     void setUp() {
         userDao.deleteAll();
-        user1 = new User("user1", "username1", "1234", Level.BASIC, 1, 0);
-        user2 = new User("user2", "username2", "1234", Level.SILVER, 55, 10);
-        user3 = new User("user3", "username3", "1234", Level.GOLD, 100, 40);
+        user1 = new User("user1", "user1@gmail.com","username1", "1234", Level.BASIC, 1, 0);
+        user2 = new User("user2", "user2@gmail.com","username2", "1234", Level.SILVER, 55, 10);
+        user3 = new User("user3", "user3@gmail.com","username3", "1234", Level.GOLD, 100, 40);
     }
 
     @DisplayName("사용자 등록 테스트")

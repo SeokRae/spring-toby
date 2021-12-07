@@ -46,11 +46,11 @@ class UserServiceTest {
 
         userDao.deleteAll();
         users = Arrays.asList(
-                new User("user1", "username1", "u1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0)
-                , new User("user2", "username2", "u2", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER, 0)
-                , new User("user3", "username3", "u3", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD - 1)
-                , new User("user4", "username4", "u4", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD)
-                , new User("user5", "username5", "u5", Level.GOLD, 100, Integer.MAX_VALUE)
+                new User("user1", "user1@gmail.com", "username1", "u1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0)
+                , new User("user2", "user2@gmail.com", "username2", "u2", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER, 0)
+                , new User("user3", "user3@gmail.com", "username3", "u3", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD - 1)
+                , new User("user4", "user4@gmail.com", "username4", "u4", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD)
+                , new User("user5", "user5@gmail.com", "username5", "u5", Level.GOLD, 100, Integer.MAX_VALUE)
         );
     }
 

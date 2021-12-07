@@ -13,18 +13,20 @@ import org.springframework.data.relational.core.mapping.Table;
 @NoArgsConstructor
 public class User {
     private String id;
+    private String email;
     private String name;
     private String password;
     private Level level;
     private int login;
     private int recommend;
 
-    public User(String id, String name, String password) {
-        this(id, name, password, null, 0, 0);
+    public User(String id, String email, String name, String password) {
+        this(id, email, name, password, null, 0, 0);
     }
 
-    public User(String id, String name, String password, Level level, int login, int recommend) {
+    public User(String id, String email, String name, String password, Level level, int login, int recommend) {
         this.id = id;
+        this.email = email;
         this.name = name;
         this.password = password;
         this.level = level;

@@ -5,7 +5,7 @@ import com.example.service.exception.TestUserServiceException;
 
 public class TestUserService extends UserService {
 
-    private String id;
+    private final String id;
 
     public TestUserService(String id) {
         this.id = id;
