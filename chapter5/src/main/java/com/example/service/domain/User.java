@@ -1,5 +1,6 @@
 package com.example.service.domain;
 
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
