@@ -87,3 +87,9 @@ project(":chapter4") {
 
     }
 }
+
+project(":chapter5") {
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-mail'
+    }
+}
