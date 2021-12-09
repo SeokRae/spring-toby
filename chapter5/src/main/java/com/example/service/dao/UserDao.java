@@ -1,4 +1,4 @@
-package com.example.service.part1;
+package com.example.service.dao;
 
 import com.example.service.domain.User;
 

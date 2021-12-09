@@ -2,7 +2,7 @@ package com.example.service.part2;
 
 import com.example.service.domain.Level;
 import com.example.service.domain.User;
-import com.example.service.part1.UserDao;
+import com.example.service.dao.UserDao;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;

@@ -4,7 +4,7 @@ import com.example.service.config.DataSourceConfig;
 import com.example.service.domain.Level;
 import com.example.service.domain.User;
 import com.example.service.exception.TestUserServiceException;
-import com.example.service.part1.UserDao;
+import com.example.service.dao.UserDao;
 import com.example.service.part1.UserDaoJdbc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,9 +1,9 @@
-package com.example.service.part1;
+package com.example.service.part2;
 
 
-import com.example.service.dao.UserDao;
 import com.example.service.domain.Level;
 import com.example.service.domain.User;
+import com.example.service.dao.UserDao;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -23,6 +23,7 @@ public class UserDaoJdbc implements UserDao {
                 public User mapRow(ResultSet rs, int rowNum) throws SQLException {
                     User user = new User();
                     user.setId(rs.getString("id"));
+                    user.setEmail(rs.getString("email"));
                     user.setName(rs.getString("name"));
                     user.setPassword(rs.getString("password"));
                     user.setLevel(Level.valueOf(rs.getInt("level")));
@@ -38,8 +39,9 @@ public class UserDaoJdbc implements UserDao {
 
     public void add(User user) {
         this.jdbcTemplate.update(
-                "insert into USERS(id, name, password, level, login, recommend) values(?, ?, ?, ?, ?, ?)"
+                "insert into USERS(id, email, name, password, level, login, recommend) values(?, ?, ?, ?, ?, ?, ?)"
                 , user.getId()
+                , user.getEmail()
                 , user.getName()
                 , user.getPassword()
                 , user.getLevel().intValue()
@@ -63,8 +65,7 @@ public class UserDaoJdbc implements UserDao {
     public int getCount() {
         return this.jdbcTemplate.query(
                 "select count(*) from USERS"
-                ,
-                rs -> {
+                , rs -> {
                     rs.next();
                     return rs.getInt(1);
                 }
@@ -80,8 +81,8 @@ public class UserDaoJdbc implements UserDao {
 
     public void update(User updateUser) {
         this.jdbcTemplate.update(
-                "UPDATE USERS SET name = ?, password = ?, level = ?, login = ?, recommend = ? where id = ?"
-                , updateUser.getName(), updateUser.getPassword()
+                "UPDATE USERS SET email = ?, name = ?, password = ?, level = ?, login = ?, recommend = ? where id = ?"
+                , updateUser.getEmail(), updateUser.getName(), updateUser.getPassword()
                 , updateUser.getLevel().intValue(), updateUser.getLogin(), updateUser.getRecommend()
                 , updateUser.getId()
         );

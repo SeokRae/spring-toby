@@ -12,3 +12,5 @@ alter table USERS
     add column login int not null default 0;
 alter table USERS
     add column recommend int not null default 0;
+alter table USERS
+    add column email varchar(20);

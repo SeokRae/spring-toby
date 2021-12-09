@@ -1,5 +1,6 @@
 package com.example.service.part1;
 
+import com.example.service.dao.UserDao;
 import com.example.service.domain.Level;
 import com.example.service.domain.User;
 import org.springframework.stereotype.Component;

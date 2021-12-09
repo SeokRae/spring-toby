@@ -1,4 +1,4 @@
-package com.example.service.part1;
+package com.example.service.part2;
 
 import com.example.service.config.DataSourceConfig;
 import com.example.service.dao.UserDao;
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -17,8 +18,8 @@ import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.example.service.part1.UserService.MIN_LOGCOUNT_FOR_SILVER;
-import static com.example.service.part1.UserService.MIN_RECCOMEND_FOR_GOLD;
+import static com.example.service.part2.UserService.MIN_LOGCOUNT_FOR_SILVER;
+import static com.example.service.part2.UserService.MIN_RECCOMEND_FOR_GOLD;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
@@ -27,7 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         UserDaoJdbc.class,
         UserService.class
 })
-class UserServiceTest {
+@DirtiesContext // 컨텍스트의 DI 설정을 변경하는 테스트라는 것을 명시
+class MockMailSenderTest {
 
     @Autowired
     private UserService userService;
@@ -42,8 +44,8 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService.setUserDao(userDao);
         userService.setTransactionManager(new DataSourceTransactionManager(dataSource));
+        userService.setUserDao(userDao);
 
         userDao.deleteAll();
         users = Arrays.asList(
@@ -55,57 +57,15 @@ class UserServiceTest {
         );
     }
 
-    @DisplayName("빈 주입 테스트")
-    @Test
-    void bean_di_expected_success() {
-        assertThat(this.userService).isNotNull();
-    }
-
-    @DisplayName("사용자 레벨 업그레이드 테스트")
-    @Test
-    void user_level_update_expected_success() {
-        for (User user : users) {
-            userDao.add(user);
-        }
-
-        userService.upgradeLevels();
-
-        checkLevel(users.get(0), Level.BASIC);
-        checkLevel(users.get(1), Level.SILVER);
-        checkLevel(users.get(2), Level.SILVER);
-        checkLevel(users.get(3), Level.GOLD);
-        checkLevel(users.get(4), Level.GOLD);
-    }
-
-    private void checkLevel(User user, Level expectedLevel) {
-        User upgradeUser = userDao.get(user.getId());
-        assertThat(upgradeUser.getLevel()).isEqualTo(expectedLevel);
-    }
-
-    @DisplayName("Level 필드 저장 확인 테스트")
-    @Test
-    void check_level_expected_success_field_settings() {
-
-        User userWithLevel = users.get(4);
-        User userWithOutLevel = users.get(0);
-        userWithOutLevel.setLevel(null);
-
-        userService.add(userWithLevel);
-        userService.add(userWithOutLevel);
-
-        User userWithLevelRead = userDao.get(userWithLevel.getId());
-        User userWithOutLevelRead = userDao.get(userWithOutLevel.getId());
-
-        assertThat(userWithLevelRead.getLevel()).isEqualTo(userWithLevel.getLevel());
-        assertThat(userWithOutLevelRead.getLevel()).isEqualTo(userWithOutLevel.getLevel());
-    }
-
     @DisplayName("Level 필드 개선 테스트")
     @Test
     void upgrade_levels() {
         for (User user : users) {
             userDao.add(user);
         }
+
+        MockMailSender mockMailSender = new MockMailSender();
+        userService.setMailSender(mockMailSender);
 
         userService.upgradeLevels();
 
@@ -114,6 +74,11 @@ class UserServiceTest {
         checkLevelUpgraded(users.get(2), false);
         checkLevelUpgraded(users.get(3), true);
         checkLevelUpgraded(users.get(4), false);
+
+        List<String> request = mockMailSender.getRequests();
+        assertThat(request.size()).isEqualTo(2);
+        assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
+        assertThat(request.get(1)).isEqualTo(users.get(3).getEmail());
     }
 
     private void checkLevelUpgraded(User user, boolean upgraded) {
