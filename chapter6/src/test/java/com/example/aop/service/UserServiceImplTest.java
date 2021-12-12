@@ -1,54 +1,51 @@
-package com.example.service.part2;
+package com.example.aop.service;
 
-import com.example.service.config.DataSourceConfig;
-import com.example.service.domain.Level;
-import com.example.service.domain.User;
-import com.example.service.exception.TestUserServiceException;
-import com.example.service.dao.UserDao;
-import com.example.service.part1.UserDaoJdbc;
+import com.example.aop.config.DataSourceConfig;
+import com.example.aop.dao.UserDao;
+import com.example.aop.dao.UserDaoJdbc;
+import com.example.aop.domain.Level;
+import com.example.aop.domain.User;
+import com.example.aop.exception.TestUserServiceException;
+import com.example.aop.mail.MockMailSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.mail.MailSender;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.example.service.part2.UserService.MIN_LOGCOUNT_FOR_SILVER;
-import static com.example.service.part2.UserService.MIN_RECCOMEND_FOR_GOLD;
+import static com.example.aop.service.UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
+import static com.example.aop.service.UserServiceImpl.MIN_RECCOMEND_FOR_GOLD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         DataSourceConfig.class,
         UserDaoJdbc.class,
-        DummyMailSender.class
+        UserServiceImpl.class
 })
-class UserServiceTest {
+class UserServiceImplTest {
 
     @Autowired
-    private MailSender mailSender;
-
-    @Autowired
-    private DataSource dataSource;
+    private UserServiceImpl userServiceImpl;
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private DataSource dataSource;
 
     private List<User> users;
 
     @BeforeEach
     void setUp() {
-        userDao.deleteAll();
         users = Arrays.asList(
                 new User("user1", "user1@gmail.com", "username1", "u1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0)
                 , new User("user2", "user2@gmail.com", "username2", "u2", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER, 0)
@@ -58,20 +55,54 @@ class UserServiceTest {
         );
     }
 
-    @DisplayName("트랜잭션을 검증하기 위한 테스트")
+    @DisplayName("Level 필드 개선 테스트")
     @Test
-    void upgradeAllOrNothing() {
-
-        UserService testUserService = new TestUserService(users.get(3).getId());
-        testUserService.setUserDao(this.userDao);
-        testUserService.setTransactionManager(new DataSourceTransactionManager(dataSource));
-        testUserService.setMailSender(mailSender);
+    void upgradeLevels() {
+        userDao.deleteAll();
 
         for (User user : users) {
             userDao.add(user);
         }
+
+        MockMailSender mockMailSender = new MockMailSender();
+        userServiceImpl.setMailSender(mockMailSender);
+        userServiceImpl.setUserDao(userDao);
+
+        // Transaction 처리 로직 제외된 UserServiceImpl
+        userServiceImpl.upgradeLevels();
+
+        checkLevelUpgraded(users.get(0), false);
+        checkLevelUpgraded(users.get(1), true);
+        checkLevelUpgraded(users.get(2), false);
+        checkLevelUpgraded(users.get(3), true);
+        checkLevelUpgraded(users.get(4), false);
+
+        List<String> request = mockMailSender.getRequests();
+        assertThat(request.size()).isEqualTo(2);
+        assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
+        assertThat(request.get(1)).isEqualTo(users.get(3).getEmail());
+    }
+
+    @DisplayName("트랜잭션을 검증하기 위한 테스트")
+    @Test
+    void upgradeAllOrNothing() {
+
+        TestUserService testUserService = new TestUserService(users.get(3).getId());
+        testUserService.setUserDao(this.userDao);
+        testUserService.setMailSender(new MockMailSender());
+
+        UserServiceTx userServiceTx = new UserServiceTx();
+        userServiceTx.setTransactionManager(new DataSourceTransactionManager(dataSource));
+        userServiceTx.setUserService(testUserService);
+
+        userDao.deleteAll();
+
+        for (User user : users) {
+            userDao.add(user);
+        }
+
         assertThatExceptionOfType(TestUserServiceException.class)
-                .isThrownBy(testUserService::upgradeLevels);
+                .isThrownBy(userServiceTx::upgradeLevels);
 
         checkLevelUpgraded(users.get(1), false);
     }
