@@ -1,12 +1,10 @@
 package com.example.aop.service;
 
 import com.example.aop.domain.User;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-@Component
 public class UserServiceTx implements UserService {
 
     private PlatformTransactionManager transactionManager;

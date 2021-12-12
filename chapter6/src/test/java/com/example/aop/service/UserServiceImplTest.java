@@ -17,6 +17,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,25 +59,28 @@ class UserServiceImplTest {
     @DisplayName("Level 필드 개선 테스트")
     @Test
     void upgradeLevels() {
+        // DB 테스트 데이터 준비
         userDao.deleteAll();
 
         for (User user : users) {
             userDao.add(user);
         }
-
+        // 메일 발송 여부 확인을 위해 목 오브젝트 DI
         MockMailSender mockMailSender = new MockMailSender();
         userServiceImpl.setMailSender(mockMailSender);
         userServiceImpl.setUserDao(userDao);
 
-        // Transaction 처리 로직 제외된 UserServiceImpl
+        // 테스트 대상을 실행
         userServiceImpl.upgradeLevels();
 
+        // DB에 저장된 결과를 확인
         checkLevelUpgraded(users.get(0), false);
         checkLevelUpgraded(users.get(1), true);
         checkLevelUpgraded(users.get(2), false);
         checkLevelUpgraded(users.get(3), true);
         checkLevelUpgraded(users.get(4), false);
 
+        // 목 오브젝트를 이용한 결과 확인
         List<String> request = mockMailSender.getRequests();
         assertThat(request.size()).isEqualTo(2);
         assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
