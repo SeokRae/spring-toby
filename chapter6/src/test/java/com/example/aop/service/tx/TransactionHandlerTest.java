@@ -1,54 +1,50 @@
-package com.example.service.part2;
+package com.example.aop.service.tx;
 
-import com.example.service.config.DataSourceConfig;
-import com.example.service.domain.Level;
-import com.example.service.domain.User;
-import com.example.service.exception.TestUserServiceException;
-import com.example.service.dao.UserDao;
-import com.example.service.part1.UserDaoJdbc;
+import com.example.aop.config.DataSourceConfig;
+import com.example.aop.dao.UserDao;
+import com.example.aop.dao.UserDaoJdbc;
+import com.example.aop.domain.Level;
+import com.example.aop.domain.User;
+import com.example.aop.exception.TestUserServiceException;
+import com.example.aop.mail.MockMailSender;
+import com.example.aop.service.TestUserService;
+import com.example.aop.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.mail.MailSender;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.example.service.part2.UserService.MIN_LOGCOUNT_FOR_SILVER;
-import static com.example.service.part2.UserService.MIN_RECCOMEND_FOR_GOLD;
+import static com.example.aop.service.UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
+import static com.example.aop.service.UserServiceImpl.MIN_RECCOMEND_FOR_GOLD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         DataSourceConfig.class,
-        UserDaoJdbc.class,
-        DummyMailSender.class
+        UserDaoJdbc.class
 })
-class UserServiceTest {
-
-    @Autowired
-    private MailSender mailSender;
-
-    @Autowired
-    private DataSource dataSource;
+class TransactionHandlerTest {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private DataSource dataSource;
 
     private List<User> users;
 
     @BeforeEach
     void setUp() {
-        userDao.deleteAll();
         users = Arrays.asList(
                 new User("user1", "user1@gmail.com", "username1", "u1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 0)
                 , new User("user2", "user2@gmail.com", "username2", "u2", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER, 0)
@@ -62,16 +58,29 @@ class UserServiceTest {
     @Test
     void upgradeAllOrNothing() {
 
-        UserService testUserService = new TestUserService(users.get(3).getId());
+        TestUserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(this.userDao);
-        testUserService.setTransactionManager(new DataSourceTransactionManager(dataSource));
-        testUserService.setMailSender(mailSender);
+        testUserService.setMailSender(new MockMailSender());
+
+        TransactionHandler txHandler = new TransactionHandler();
+        txHandler.setTarget(testUserService);
+        txHandler.setTransactionManager(new DataSourceTransactionManager(dataSource));
+        txHandler.setPattern("upgradeLevels");
+
+        UserService txUserService = (UserService) Proxy.newProxyInstance(
+                getClass().getClassLoader(),
+                new Class[]{UserService.class},
+                txHandler
+        );
+
+        userDao.deleteAll();
 
         for (User user : users) {
             userDao.add(user);
         }
+
         assertThatExceptionOfType(TestUserServiceException.class)
-                .isThrownBy(testUserService::upgradeLevels);
+                .isThrownBy(txUserService::upgradeLevels);
 
         checkLevelUpgraded(users.get(1), false);
     }
