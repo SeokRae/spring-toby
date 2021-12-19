@@ -3,6 +3,8 @@ package com.example.aop.dao;
 
 import com.example.aop.domain.Level;
 import com.example.aop.domain.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -62,6 +64,7 @@ public class UserDaoJdbc implements UserDao {
     }
 
     public int getCount() {
+        Logger logger = LoggerFactory.getLogger(UserDaoJdbc.class);
         return this.jdbcTemplate.query(
                 "select count(*) from USERS"
                 , rs -> {

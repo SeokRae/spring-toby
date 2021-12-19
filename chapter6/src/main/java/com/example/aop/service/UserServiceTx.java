@@ -31,7 +31,6 @@ public class UserServiceTx implements UserService {
             userService.upgradeLevels();
 
             this.transactionManager.commit(transactionStatus);
-
         } catch (RuntimeException e) {
             this.transactionManager.rollback(transactionStatus);
             throw e;

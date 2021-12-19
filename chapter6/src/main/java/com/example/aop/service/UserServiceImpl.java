@@ -6,7 +6,6 @@ import com.example.aop.domain.Level;
 import com.example.aop.domain.User;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 

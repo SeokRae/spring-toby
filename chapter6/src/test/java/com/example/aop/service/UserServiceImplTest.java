@@ -17,7 +17,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
