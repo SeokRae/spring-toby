@@ -9,8 +9,6 @@ import com.example.aop.exception.TestUserServiceException;
 import com.example.aop.mail.MockMailSender;
 import com.example.aop.service.TestUserService;
 import com.example.aop.service.UserService;
-import com.example.aop.service.UserServiceImpl;
-import com.example.aop.service.UserServiceTx;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,6 +53,7 @@ class TransactionHandlerTest {
                 , new User("user5", "user5@gmail.com", "username5", "u5", Level.GOLD, 100, Integer.MAX_VALUE)
         );
     }
+
     @DisplayName("트랜잭션을 검증하기 위한 테스트")
     @Test
     void upgradeAllOrNothing() {
