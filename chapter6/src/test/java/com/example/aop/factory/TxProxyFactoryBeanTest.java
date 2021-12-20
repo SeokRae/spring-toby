@@ -30,8 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         DataSourceConfig.class,
-        UserDaoJdbc.class,
-        TxProxyFactoryBean.class
+        UserDaoJdbc.class
 })
 class TxProxyFactoryBeanTest {
 
@@ -40,7 +39,6 @@ class TxProxyFactoryBeanTest {
 
     @Autowired
     private UserDao userDao;
-
 
     private List<User> users;
 

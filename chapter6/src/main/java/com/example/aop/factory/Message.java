@@ -1,7 +1,5 @@
 package com.example.aop.factory;
 
-import org.springframework.stereotype.Component;
-
 public class Message {
     private final String text;
 
