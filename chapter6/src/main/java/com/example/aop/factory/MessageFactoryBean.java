@@ -19,7 +19,7 @@ public class MessageFactoryBean implements FactoryBean<Message> {
     }
 
     @Override
-    public Class<?> getObjectType() {
+    public Class<? extends Message> getObjectType() {
         return Message.class;
     }
 

@@ -5,9 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -15,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        MessageFactoryBeanTest.ApplicationConfig.class
+        MessageApplicationConfig.class
 })
 class MessageFactoryBeanTest {
 
@@ -31,22 +29,12 @@ class MessageFactoryBeanTest {
         assertThat(((Message) message).getText()).isEqualTo("Factory Bean");
     }
 
+    // TODO 사용 불가 수정해야함
     @Disabled
     @DisplayName("팩토리 빈 조회 테스트")
     @Test
     void testCase2() {
         Object factory = context.getBean("$message");
         assertThat(factory).isInstanceOf(MessageFactoryBean.class);
-    }
-
-    @TestConfiguration
-    static class ApplicationConfig {
-
-        @Bean
-        public MessageFactoryBean message() {
-            MessageFactoryBean messageFactoryBean = new MessageFactoryBean();
-            messageFactoryBean.setText("Factory Bean");
-            return messageFactoryBean;
-        }
     }
 }
