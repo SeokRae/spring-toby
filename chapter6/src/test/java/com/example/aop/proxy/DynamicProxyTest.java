@@ -2,7 +2,7 @@ package com.example.aop.proxy;
 
 import com.example.aop.dynamic.Hello;
 import com.example.aop.dynamic.HelloTarget;
-import com.example.aop.dynamic.UppercaseAdvice;
+import com.example.aop.advice.UppercaseAdvice;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.aop.framework.ProxyFactoryBean;

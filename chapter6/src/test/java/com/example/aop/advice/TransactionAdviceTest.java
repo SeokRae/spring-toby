@@ -1,4 +1,4 @@
-package com.example.aop.factory;
+package com.example.aop.advice;
 
 import com.example.aop.config.DataSourceConfig;
 import com.example.aop.dao.UserDao;
@@ -6,16 +6,16 @@ import com.example.aop.dao.UserDaoJdbc;
 import com.example.aop.domain.Level;
 import com.example.aop.domain.User;
 import com.example.aop.exception.TestUserServiceException;
+import com.example.aop.factory.TxProxyFactoryBean;
 import com.example.aop.mail.MockMailSender;
 import com.example.aop.service.TestUserService;
 import com.example.aop.service.UserService;
-import com.example.aop.service.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,10 +31,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        DataSourceConfig.class,
-        UserDaoJdbc.class
+        TransactionAdviceConfig.class
 })
-class TxProxyFactoryBeanTest {
+class TransactionAdviceTest {
 
     @Autowired
     private ApplicationContext context;
@@ -58,13 +57,13 @@ class TxProxyFactoryBeanTest {
     @DisplayName("트랜잭션을 검증하기 위한 테스트")
     @Test
     @DirtiesContext
-    void upgradeAllOrNothing() throws Exception {
+    void upgradeAllOrNothing() {
 
         TestUserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(userDao);
         testUserService.setMailSender(new MockMailSender());
 
-        TxProxyFactoryBean txProxyFactoryBean = context.getBean("$userService", TxProxyFactoryBean.class);
+        ProxyFactoryBean txProxyFactoryBean = context.getBean("$userService", ProxyFactoryBean.class);
         txProxyFactoryBean.setTarget(testUserService);
         UserService txUserService = (UserService) txProxyFactoryBean.getObject();
 
@@ -89,4 +88,5 @@ class TxProxyFactoryBeanTest {
             assertThat(userUpdate.getLevel()).isEqualTo(user.getLevel());
         }
     }
+
 }

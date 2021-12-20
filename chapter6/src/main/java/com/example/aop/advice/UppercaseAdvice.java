@@ -1,4 +1,4 @@
-package com.example.aop.dynamic;
+package com.example.aop.advice;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;

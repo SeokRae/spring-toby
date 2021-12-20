@@ -12,7 +12,6 @@ public class TxProxyFactoryBean implements FactoryBean<Object> {
     private String pattern;
     private Class<?> serviceInterface;
 
-
     public void setTarget(Object target) {
         this.target = target;
     }
