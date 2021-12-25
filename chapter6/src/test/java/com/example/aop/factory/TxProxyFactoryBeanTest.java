@@ -1,4 +1,4 @@
-package com.example.aop.service.tx;
+package com.example.aop.factory;
 
 import com.example.aop.config.DataSourceConfig;
 import com.example.aop.dao.UserDao;
@@ -9,17 +9,18 @@ import com.example.aop.exception.TestUserServiceException;
 import com.example.aop.mail.MockMailSender;
 import com.example.aop.service.TestUserService;
 import com.example.aop.service.UserService;
+import com.example.aop.service.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.sql.DataSource;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,13 +34,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
         DataSourceConfig.class,
         UserDaoJdbc.class
 })
-class TransactionHandlerTest {
+class TxProxyFactoryBeanTest {
+
+    @Autowired
+    private ApplicationContext context;
 
     @Autowired
     private UserDao userDao;
-
-    @Autowired
-    private DataSource dataSource;
 
     private List<User> users;
 
@@ -56,22 +57,16 @@ class TransactionHandlerTest {
 
     @DisplayName("트랜잭션을 검증하기 위한 테스트")
     @Test
-    void upgradeAllOrNothing() {
+    @DirtiesContext
+    void upgradeAllOrNothing() throws Exception {
 
         TestUserService testUserService = new TestUserService(users.get(3).getId());
-        testUserService.setUserDao(this.userDao);
+        testUserService.setUserDao(userDao);
         testUserService.setMailSender(new MockMailSender());
 
-        TransactionHandler txHandler = new TransactionHandler();
-        txHandler.setTarget(testUserService);
-        txHandler.setTransactionManager(new DataSourceTransactionManager(dataSource));
-        txHandler.setPattern("upgradeLevels");
-
-        UserService txUserService = (UserService) Proxy.newProxyInstance(
-                getClass().getClassLoader(),
-                new Class[]{UserService.class},
-                txHandler
-        );
+        TxProxyFactoryBean txProxyFactoryBean = context.getBean("$userService", TxProxyFactoryBean.class);
+        txProxyFactoryBean.setTarget(testUserService);
+        UserService txUserService = (UserService) txProxyFactoryBean.getObject();
 
         userDao.deleteAll();
 

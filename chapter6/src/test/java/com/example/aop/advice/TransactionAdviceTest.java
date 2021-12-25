@@ -1,10 +1,10 @@
-package com.example.aop.service.tx;
+package com.example.aop.advice;
 
-import com.example.aop.config.DataSourceConfig;
 import com.example.aop.dao.UserDao;
-import com.example.aop.dao.UserDaoJdbc;
 import com.example.aop.domain.Level;
 import com.example.aop.domain.User;
+import com.example.aop.dynamic.Hello;
+import com.example.aop.dynamic.HelloTarget;
 import com.example.aop.exception.TestUserServiceException;
 import com.example.aop.mail.MockMailSender;
 import com.example.aop.service.TestUserService;
@@ -13,13 +13,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.aop.ClassFilter;
+import org.springframework.aop.Pointcut;
+import org.springframework.aop.framework.ProxyFactoryBean;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.sql.DataSource;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,16 +34,18 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        DataSourceConfig.class,
-        UserDaoJdbc.class
+        TransactionAdviceConfig.class
 })
-class TransactionHandlerTest {
+class TransactionAdviceTest {
+
+    @Autowired
+    private ApplicationContext context;
 
     @Autowired
     private UserDao userDao;
 
     @Autowired
-    private DataSource dataSource;
+    private UserService userService;
 
     private List<User> users;
 
@@ -56,22 +62,16 @@ class TransactionHandlerTest {
 
     @DisplayName("트랜잭션을 검증하기 위한 테스트")
     @Test
+    @DirtiesContext
     void upgradeAllOrNothing() {
 
         TestUserService testUserService = new TestUserService(users.get(3).getId());
-        testUserService.setUserDao(this.userDao);
+        testUserService.setUserDao(userDao);
         testUserService.setMailSender(new MockMailSender());
 
-        TransactionHandler txHandler = new TransactionHandler();
-        txHandler.setTarget(testUserService);
-        txHandler.setTransactionManager(new DataSourceTransactionManager(dataSource));
-        txHandler.setPattern("upgradeLevels");
-
-        UserService txUserService = (UserService) Proxy.newProxyInstance(
-                getClass().getClassLoader(),
-                new Class[]{UserService.class},
-                txHandler
-        );
+        ProxyFactoryBean txProxyFactoryBean = context.getBean("$userService", ProxyFactoryBean.class);
+        txProxyFactoryBean.setTarget(testUserService);
+        UserService txUserService = (UserService) txProxyFactoryBean.getObject();
 
         userDao.deleteAll();
 
@@ -92,6 +92,50 @@ class TransactionHandlerTest {
             assertThat(userUpdate.getLevel()).isEqualTo(user.getLevel().nextLevel());
         } else {
             assertThat(userUpdate.getLevel()).isEqualTo(user.getLevel());
+        }
+    }
+
+    @DisplayName("확장 포인트 컷 테스트")
+    @Test
+    void classNamePointcutAdvisor() {
+        NameMatchMethodPointcut classMethodPointcut = new NameMatchMethodPointcut() {
+            @Override
+            public ClassFilter getClassFilter() {
+                return new ClassFilter() {
+                    @Override
+                    public boolean matches(Class<?> clazz) {
+                        return clazz.getSimpleName().startsWith("HelloT");
+                    }
+                };
+            }
+        };
+        classMethodPointcut.setMappedName("sayH*");
+
+        checkAdviced(new HelloTarget(), classMethodPointcut, true);
+
+        class HelloWorld extends HelloTarget {}
+        checkAdviced(new HelloWorld(), classMethodPointcut, false);
+
+        class HelloToby extends HelloTarget {}
+        checkAdviced(new HelloToby(), classMethodPointcut, true);
+
+    }
+
+    private void checkAdviced(Object target, Pointcut pointcut, boolean adviced) {
+        ProxyFactoryBean pfBean = new ProxyFactoryBean();
+        pfBean.setTarget(target);
+        pfBean.addAdvisor(new DefaultPointcutAdvisor(pointcut, new UppercaseAdvice()));
+
+        Hello proxiedHello = (Hello) pfBean.getObject();
+
+        if (adviced) {
+            assertThat(proxiedHello.sayHello("Seok")).isEqualTo("HELLO SEOK");
+            assertThat(proxiedHello.sayHi("Seok")).isEqualTo("HI SEOK");
+            assertThat(proxiedHello.sayThankYou("Seok")).isEqualTo("Thank You Seok");
+        } else {
+            assertThat(proxiedHello.sayHello("Seok")).isEqualTo("Hello Seok");
+            assertThat(proxiedHello.sayHi("Seok")).isEqualTo("Hi Seok");
+            assertThat(proxiedHello.sayThankYou("Seok")).isEqualTo("Thank You Seok");
         }
     }
 }
