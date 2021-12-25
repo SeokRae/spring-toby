@@ -61,7 +61,7 @@ public class TransactionAdviceConfig {
     }
 
     @Bean
-    public UserService userService() {
+    public UserService userService() throws ClassNotFoundException {
         ProxyFactoryBean proxyFactoryBean = new ProxyFactoryBean();
         proxyFactoryBean.setTarget(getTarget());
         proxyFactoryBean.setInterceptorNames("transactionAdvisor");
@@ -69,8 +69,10 @@ public class TransactionAdviceConfig {
     }
 
     @Bean
-    public UserServiceImpl getTarget() {
-        return new UserServiceImpl();
+    public UserServiceImpl getTarget() throws ClassNotFoundException {
+        UserServiceImpl userService = new UserServiceImpl();
+        userService.setUserDao(userDao());
+        return userService;
     }
 
     @Bean

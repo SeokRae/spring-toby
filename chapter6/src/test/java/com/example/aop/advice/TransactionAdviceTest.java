@@ -1,12 +1,11 @@
 package com.example.aop.advice;
 
-import com.example.aop.config.DataSourceConfig;
 import com.example.aop.dao.UserDao;
-import com.example.aop.dao.UserDaoJdbc;
 import com.example.aop.domain.Level;
 import com.example.aop.domain.User;
+import com.example.aop.dynamic.Hello;
+import com.example.aop.dynamic.HelloTarget;
 import com.example.aop.exception.TestUserServiceException;
-import com.example.aop.factory.TxProxyFactoryBean;
 import com.example.aop.mail.MockMailSender;
 import com.example.aop.service.TestUserService;
 import com.example.aop.service.UserService;
@@ -14,7 +13,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.aop.ClassFilter;
+import org.springframework.aop.Pointcut;
 import org.springframework.aop.framework.ProxyFactoryBean;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,6 +43,9 @@ class TransactionAdviceTest {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private UserService userService;
 
     private List<User> users;
 
@@ -89,4 +95,47 @@ class TransactionAdviceTest {
         }
     }
 
+    @DisplayName("확장 포인트 컷 테스트")
+    @Test
+    void classNamePointcutAdvisor() {
+        NameMatchMethodPointcut classMethodPointcut = new NameMatchMethodPointcut() {
+            @Override
+            public ClassFilter getClassFilter() {
+                return new ClassFilter() {
+                    @Override
+                    public boolean matches(Class<?> clazz) {
+                        return clazz.getSimpleName().startsWith("HelloT");
+                    }
+                };
+            }
+        };
+        classMethodPointcut.setMappedName("sayH*");
+
+        checkAdviced(new HelloTarget(), classMethodPointcut, true);
+
+        class HelloWorld extends HelloTarget {}
+        checkAdviced(new HelloWorld(), classMethodPointcut, false);
+
+        class HelloToby extends HelloTarget {}
+        checkAdviced(new HelloToby(), classMethodPointcut, true);
+
+    }
+
+    private void checkAdviced(Object target, Pointcut pointcut, boolean adviced) {
+        ProxyFactoryBean pfBean = new ProxyFactoryBean();
+        pfBean.setTarget(target);
+        pfBean.addAdvisor(new DefaultPointcutAdvisor(pointcut, new UppercaseAdvice()));
+
+        Hello proxiedHello = (Hello) pfBean.getObject();
+
+        if (adviced) {
+            assertThat(proxiedHello.sayHello("Seok")).isEqualTo("HELLO SEOK");
+            assertThat(proxiedHello.sayHi("Seok")).isEqualTo("HI SEOK");
+            assertThat(proxiedHello.sayThankYou("Seok")).isEqualTo("Thank You Seok");
+        } else {
+            assertThat(proxiedHello.sayHello("Seok")).isEqualTo("Hello Seok");
+            assertThat(proxiedHello.sayHi("Seok")).isEqualTo("Hi Seok");
+            assertThat(proxiedHello.sayThankYou("Seok")).isEqualTo("Thank You Seok");
+        }
+    }
 }
