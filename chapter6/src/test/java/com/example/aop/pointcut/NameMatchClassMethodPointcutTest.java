@@ -1,4 +1,4 @@
-package com.example.aop.proxy;
+package com.example.aop.pointcut;
 
 import com.example.aop.advice.UppercaseAdvice;
 import com.example.aop.dynamic.Hello;
