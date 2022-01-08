@@ -324,7 +324,117 @@ public class UserServiceTest {
 
 테스트에서 트랜잭션을 제어할 수 있기 때문에 롤백 테스트가 가능한 것이다.
 
-> `6.8.3 테스트를 위한 트랜잭션 애노테이션`
+> **6.8.3 테스트를 위한 트랜잭션 애노테이션**
+
+@Transactional 어노테이션은 타깃 클래스 또는 인터페이스에 부여하여 트랜잭션을 적용할 수 있는데 이는 테스트 코드를 작성하는데도 동일하게 사용할 수 있다.
+
+스프링의 컨텍스트 테스트 프레임워크에서 제공하는 `@ContextConfiguration`을 클래스에 부여하여 스프링 컨테이너를 초기화하고, 필요한 빈만을 등록하여 테스트에 필요한 빈을 `@Autowired`를 통해 자유롭게 접근할 수 있다.
+
+- `@Transactional`
+
+어노테이션을 적용한 메서드에 트랜잭션 경계가 자동으로 설정되어 트랜잭션 관련 작업을 하나로 묶을 수 있다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private UserService userService;
+  
+    @Test
+    @Transactional
+    public void transactionSync() {
+        userService.deleteAll();
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+    }
+}
+```
+
+트랜잭션의 적용 여부를 확인하는 작업이 필요한 경우 트랜잭션의 속성을 읽기 전용으로 설정하여 동일한 테스트를 진행해본다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private UserService userService;
+  
+    @Test
+    @Transactional(readOnly = true)
+    public void transactionSync() {
+        userService.deleteAll(); // 읽기 전용 트랜잭션에서 쓰기 요청을 하는 경우 예외 발생
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+    }
+}
+```
+
+- `@Rollback`
+
+테스트용 트랜잭션은 테스트가 끝나면 자동으로 롤백이 된다.
+
+혹시나 DB에 반영하고 싶은 경우 @Rollback 어노테이션을 사용하여 속성을 false 로 갖게 하면 트랜잭션이 모두 종료되더라도 DB가 롤백 되지 않는다.
+
+다만 테스트 데이터가 DB에 데이터를 넣는건 신중하게 생각해야 한다. 물론 테스트 DB가 따로 있는 경우, 개발자들 간의 서로 예약된 내용이 있는 경우 사용하도록 한다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private UserService userService;
+  
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void transactionSync() {
+        userService.deleteAll();
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+    }
+}
+```
+
+- `@TransactionConfiguration`
+
+@Transactional 어노테이션은 테스트 클래스에 적용하여 모든 메서드에 일괄 적용할 수 있고, @Rollback 어노테이션은 메서드 레벨에만 적용이 가능하다.
+
+테스트 클래스의 모든 메서드에 트랜잭션을 적용하면서 모든 트랜잭션이 롤백되지 않고 커밋되게 하려면 @TransactionConfiguration 어노테이션을 이용하여 롤백에 대한 공통 속성을 지정할 수 있다.
+
+```java
+@Transactional
+@TransactionConfiuguration(defaultRollback = false)
+public class UserServiceTest {
+    @Autowired
+    private UserService userService;
+  
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void transactionSync() {
+        userService.deleteAll();
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+    }
+}
+```
+
+- `NotTransactional과 Propagation.NEVER`
+
+테스트 클래스 안에서 일부 메서드에만 트랜잭션이 필요한 경우 메서드 레벨에 @Transactional을 적용한다.
+
+또는 대부분 메서드에 트랜잭션이 필요한 경우 클래스 레벨에 @Transactional을 적용한다.
+
+굳이 트랜잭션이 필요 없는 메서드도 굳이 적용해야 할까? 해당 메서드에만 테스트 메서드에 의한 트랜잭션이 시작되지 않도록 트랜잭션의 전파 속성을 변경한다.
+
+@Transactional(propagation = Propagation.NEVER)는 트랜잭션이 시작되지 않도록 하는 전파 속성으로 위의 목적을 달성할 수 있다.
+
+- `효과적인 DB 테스트`
+
+테스트 내에서 트랜잭션을 제어할 수 있는 네 가지 어노테이션을 잘 활용하게 되면 DB가 사용되는 통합 테스트를 만들 때 편리하다.
+
+일반적으로 의존, 협력 오브젝트를 사용하지 않고 고립된 상태에서 테스트를 진행하는 `단위 테스트`, DB 같은 외부의 리소스나 여러 계층의 클래스가 참여하는 `통합 테스트`는 아예 클래스를 구분해서 따로 만드는 것이 좋다.
+
+통합 테스트와 단위 테스트를 구분하게 되면 보다 효율적으로 어노테이션을 활용할 수 있다.
+
+테스트는 어떤 경우에도 서로 의존하면 안된다. 테스트가 진행되는 순서나 앞의 테스트의 성공 여부가 다음 테스트에 영향을 주는 것도 허용하지 않는다.
+
+어더한 순서로 진행되더라도 일정한 결과를 내야 한다.
 
 ### 6.9 정리
 
