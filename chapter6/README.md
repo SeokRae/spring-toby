@@ -94,7 +94,7 @@
 
 ### 6.8 트랜잭션 지원 테스트
 
-> 6.8.1 선언적 트랜잭션과 트랜잭션 전파 속성
+> **6.8.1 선언적 트랜잭션과 트랜잭션 전파 속성**
 
 `트랜잭션 전파 속성`은 `REQUIRED`를 기본 속성으로 사용하고 있고 이는 앞서 진행 중인 트랜잭션이 있으면 참여하고, 없으면 자동으로 새로운 트랜잭션을 시작한다.
 
@@ -112,6 +112,219 @@
   - AOP를 이용해 코드 외부에서 트랜잭션의 기능을 부여해주고 속성을 지정할 수 있도록 제공한다.
 - 프로그램에 의한 트랜잭션
   - `TransactionTemplate`이나 개별 데이터 기술의 트랜잭션 API를 사용해 직접 코드에서 사용하는 방법이다.
+
+
+> **6.8.2 트랜잭션 동기화와 테스트**
+
+트랜잭션의 자유로운 `전파`와 그로 인한 유연한 개발이 가능할 수 있었던 배경에 AOP가 있다.
+
+한 가지 중요한 기술적인 기반은 `스프링의 트랜잭션 추상화`이다.
+
+트랜잭션 기술에 상관없이 DAO에서 일어나는 작업들을 하나의 트랜잭션으로 묶어서 추상 레벨에서 관리하게 해주는 트랜잭션 추상화로 인해 
+
+비로소 선언적 트랜잭션이나 트랜잭션 전파 등이 가능해진 것이다.
+
+- `트랜잭션 매니저와 트랜잭션 동기화`
+
+트랜잭션 추상화 기술의 핵심은 `트랜잭션 매니저`와 `트랜잭션 동기화`이다.
+
+스프링는 `PlatformTransactionManager 인터페이스`를 구현한 트랜잭션 매니저를 통해 구체적인 트랜잭션 기술의 종류에 상관없이 일관된 트랜잭션 제어를 가능하게 한다.
+
+`트랜잭션의 동기화 기술`은 진행중인 트랜잭션이 있는지 확인하고, `트랜잭션 전파 속성`에 따라서 `트랜잭션 전파 기능`의 속성 별 동작하게 한다.
+
+`트랜잭션의 전파 속성`은 `REQUIRED`, `SUPPORTS`, `MANDATORY`, `REQUIRES_NEW`, `NOT_SUPPORTED`, `NEVER`, `NESTED`등이 있으며 기본적인 트랜잭션의 전파 속성은 REQUIRED이다.
+
+일반적으로는 AOP를 통해 트랜잭션의 전파 속성에 따라 동기화할 수도 있지만, 특별한 경우 TransactionManager를 통해 트랜잭션을 제어할 수도 있다.
+
+스프링 테스트 컨텍스트를 사용하는 경우 PlatformTransactionManager Bean을 가져와 핸들링할 수도 있다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
+    @Autowired
+    private UserService userService;
+    
+    @Test
+    public void transactionSync() {
+        userService.deleteAll();
+        
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+    }
+}
+```
+
+위 테스트 메서드가 실행 되는 동안 몇 개의 트랜잭션이 만들어 졌을까? UserService의 모든 메서드에는 트랜잭션이 적용되었다면 총 3개의 트랜잭션이 만들어졌을 것이다.
+
+모두 독립적인 트랜잭션 안에서 실행이 되었을 것이다. 왜냐하면 기본적인 트랜잭션 전파 속성이 REQUIRED 이기 때문에 새로운 트랜잭션으로 각각 수행되었다.
+
+- `트랜잭션 매니저를 이용한 테스트용 트랜잭션 제어`
+
+여기서 시도해 볼 내용은 각각의 트랜잭션을 하나의 트랜잭션으로 동작하게 하는 것이다.
+
+결국 트랜잭션의 전파 속성이 REQUIRED라는 속성을 이용하여 3개의 트랜잭션을 묶기 위해 메서드 호출 전 트랜잭션 시작되도록 한다는 것이다.
+
+테스트 코드로 `트랜잭션 매니저`를 이용해 `트랜잭션을 시작시키고 이를 동기화` 하도록 한다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
+    @Autowired
+    private UserService userService;
+
+    @Test
+    public void transactionSync() {
+        DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+        TransactionStatus txStatus = platformTransactionManager.getTransaction(txDefinition);
+        userService.deleteAll();
+  
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+        
+        platformTransactionManager.commit(txStatus);
+    }
+}
+```
+
+위 코드는 트랜잭션 매니저를 이용해 트랜잭션을 미리 시작하게 만드는 테스트이다.
+
+- `트랜잭션 동기화 검증`
+
+트랜잭션 매니저를 통해 코드를 구현 한 것까지는 좋지만 이에 대해 검증하는 코드는 필수이다.
+
+정말 트랜잭션 매니저를 통해 세 개의 메서드의 트랜잭션이 동기화 되었는지 확인하는 작업이 필요하다.
+
+이를 테스트 하는 방법은 트랜잭션의 속성에서 읽기전용이라는 속성을 통해 검증하는 것이다.
+
+즉, 쓰기 가능의 트랜잭션 속성을 갖는 deleteAll() 전에 앞서 시작된 트랜잭션 상태를 읽기전용으로 하여 진행해보도록 한다.
+
+읽기 전용 트랜잭션이 시작되고나서, 쓰기 작업이 수행되면 `TransientDataAccessResourceException` 이라는 예외가 발생하게 되는 것을 이용하여 트랜잭션 동기화를 검증한다.
+
+`TransientDataAccessResourceException`는 읽기전용 트랜잭션에 대해 쓰기 작업을 했을때 발생하는 예외이다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
+    @Autowired
+    private UserService userService;
+
+    @Test
+    public void transactionSync() {
+        DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+        txDefinition.setReadOnly(true); // 읽기전용 트랜잭션으로 정의
+        TransactionStatus txStatus = platformTransactionManager.getTransaction(txDefinition);
+        
+        userService.deleteAll(); // 읽기전용 속성을 위반하여 예외가 발생하는 라인
+  
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+        
+        platformTransactionManager.commit(txStatus);
+    }
+}
+```
+
+예외가 발생하는 것을 확인함으로써 테스트 코드 내에 시작한 트랜잭션에 deleteAll() 메서드가 참여하고 있다는 확신을 얻을 수 있다.
+
+`스프링의 트랜잭션 추상화`가 제공하는 `트랜잭션 동기화 기술`과 `트랜잭션 전파 속성` 덕분에 테스트도 트랜잭션으로 묶을 수 있다.
+
+이러한 방식은 선언적 트랜잭션이 적용된 서비스 메서드에만 적용되는 것이 아니라 JdbcTemplate과 같이 스프링이 제공하는 데이터 엑세스 추상화를 적용한 DAO에도 동일하게 사용 가능하다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
+    @Autowired
+    private UserService userService;
+  
+    @Test
+    public void transactionSync() {
+      DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+      txDefinition.setReadOnly(true); // 읽기전용 트랜잭션으로 정의
+      TransactionStatus txStatus = platformTransactionManager.getTransaction(txDefinition);
+  
+      userDao.deleteAll(); // JdbcTemplate을 사용하더라도 이미 시작된 트랜잭션이 있다면 자동으로 참여하게 되어 예외가 발생한다.
+  
+      // ...
+    }
+}
+```
+
+트랜잭션의 롤백 테스트도 수행되는지 확인해보는 코드를 작성한다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
+    @Autowired
+    private UserService userService;
+  
+    @Test
+    public void transactionSync() {
+      userService.deleteAll();
+      assertThat(userDao.getCount()).isOne(); // 트랜잭션 시작 전 초기화
+      
+      DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+      TransactionStatus txStatus = platformTransactionManager.getTransaction(txDefinition);
+      
+      userService.add(users.get(0));
+      userService.add(users.get(1));
+      assertThat(userDao.getCount()).isEqualTo(2); // userDao.getCount()를 통해 두개의 데이터가 들어갔는지 확인
+      
+      platformTransactionManager.rollback(txStatus);
+      
+      assertThat(userDao.getCount()).isZero(); // 롤백 후 트랜잭션 시작 이전의 상태임을 확인
+    }
+}
+```
+
+지금까지 작업을 통해 테스트 안에서 트랜잭션을 조작할 수 있는 방법을 이해했다면 올바르게 이해한 것이다.
+
+이 방식을 통해 `ORM에서 세션에서 분리된(detached) 엔티티의 동작`을 확인할 때도 유용하다.
+
+테스트 메서드 안에서 `트랜잭션을 여러 번 만들 수`도 있고, `트랜잭션의 속성에 따라서 여러 메서드를 조합해 사용`할 때 어떠한 결과가 나오는지 미리 검증도 가능하다.
+
+- 롤백 테스트
+
+롤백 테스트의 목표는 테스트 내에 모든 DB 작업을 하나의 트랜잭션 안에서 동작하게 하고 테스트가 끝나면 무조건 롤백하는 것이다.
+
+```java
+public class UserServiceTest {
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
+    @Autowired
+    private UserService userService;
+  
+    @Test
+    public void transactionSync() {
+        DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+        TransactionStatus txStatus = platformTransactionManager.getTransaction(txDefinition);
+        
+        try {
+            userService.deleteAll();
+            userService.add(users.get(0));
+            userService.add(users.get(1));
+            assertThat(userDao.getCount()).isEqualTo(2); // userDao.getCount()를 통해 두개의 데이터가 들어갔는지 확인
+        } finally {
+            platformTransactionManager.rollback(txStatus);
+            assertThat(userDao.getCount()).isZero(); // 롤백 후 트랜잭션 시작 이전의 상태임을 확인
+        }
+    }
+}
+```
+
+테스트를 작성할 때는 대상 메서드 외에 DB를 사용하게 되는 경우 DB의 데이터와 상태가 중요한데, 더 큰 문제는 DB의 데이터가 바뀌는 것이 가장 문제이다.
+
+테스트가 어떤 순서로 동작할 지 알 수 없고, 성공 했을 대와 실패 했을 때 DB에 다른 방식으로 영향을 줄 수 있기 때문에, 테스트 할 때 마다 DB 데이터를 초기화 하는 것이 중요하다.
+
+결국 롤백 테스트는 테스트를 진행하는 동안에 조작한 데이터를 모두 롤백하고 테스트를 시작하기 전 상태로 만들어 주기 때문에 테스트에 대한 성공, 실패, 예외 모두 상관이 없다.
+
+테스트에서 트랜잭션을 제어할 수 있기 때문에 롤백 테스트가 가능한 것이다.
+
+> `6.8.3 테스트를 위한 트랜잭션 애노테이션`
 
 ### 6.9 정리
 
