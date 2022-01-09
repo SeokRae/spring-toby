@@ -90,7 +90,118 @@
     - PROPAGATION_NOT_SUPPORTED
     - ISOLATION_SERIALIZABLE
 
-### 어노테이션 트랜잭션 속성과 포인트컷
+### 6.7 어노테이션 트랜잭션 속성과 포인트컷
+
+`포인트컷 표현식`과 `트랜잭션 속성`을 이용해 트랜잭션을 일괄적으로 적용하는 방식은 대부분의 상황에 적용할 수 있다.
+
+보다 세밀하게 튜닝된 트랜잭션 속성을 적용해야 하는 경우에는 메서드 이름 패턴을 통해 일괄 적용하는 방식은 적합하지 않다.
+
+스프링은 이러한 `문제점`을 개선하기 위해 `직접 타깃에 트랜잭션 속성정보를 갖는 어노테이션을 지정하는 방법`을 제공한다.
+
+> **6.7.1 트랜잭션 어노테이션**
+
+`타깃 부여할 수 있는 트랜잭션 어노테이션의 종류`에 대해서 알고 이해하기 전에 `메타 어노테이션`에 대해서 알고 있어야 한다.
+
+- `@Transactional`
+
+`@Transactional` 어노테이션의 타깃은 `메서드`와 `타입`이다.
+
+따라서 `메서드`, `클래스`, `인터페이스`에 적용할 수 있으며, @Transactional 어노테이션을 트랜잭션 속성정보로 사용하도록 지정하면 모든 오브젝트를 자동으로 타깃 오브젝트로 인식한다.
+
+이때 사용되는 포인트컷은 `TransactionAttributeSourcePointcut` 클래스로 표현식과 같은 선정기준을 갖지 않는다.
+
+대신 @Transactional 어노테이션이 적용되어 있는 메서드, 클래스 레벨 상관없이 부여된 빈 오브젝트를 모두 찾아 포인트컷의 선정 결과로 돌려준다.
+
+결국 `@Transactional 어노테이션`으로 `Transaction 속성을 정의하는 것`과 동시에 `포인트컷의 자동등록에도 사용되는 것`이다.
+
+```java
+import java.lang.annotation.*;
+
+/**
+ * 트랜잭션 속성의 모든 항목을 엘리먼트로 지정할 수 있으며, 디폴트 값이 설정되어 있어 있으므로 모두 생략이 가능하다.
+ */
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface Transactional {
+    String value() default "";
+    Propagation propagation() default Propagation.REQUIRED;
+    Isolation isolation() default Isolation.DEFAULT;
+    int timeout() default TransactionDefinition.TIMEOUT_DEFAULT;
+    boolean readOnly() default false;
+    Class<? extends Throwable>[] rollbackFor() default {};
+    String[] rollbackForClassName() default {};
+    Class<? extends Throwable>[] noRollbackFor() default {};
+    String[] noRollbackForClassName() default {};
+}
+```
+
+- `트랜잭션 속성을 이용하는 포인트컷`
+
+@Transactional 어노테이션을 적용할 때 어드바이저의 동작방식을 보면 TransactionInterceptor는 메서드 이름 패턴을 통해 부여되는 일괄적인 트랜잭션 속성정보 대신 @Transactional 어노테이션의 엘리먼트에서 트랜잭션 속성을 가져오는 AnnotationTransactionAttributeSource를 사용하게 된다.
+
+이 방식은 포인트컷과 트랜잭션 속성을 어노테이션 하나로 지정할 수 있지만 트랜잭션 부가기능 적용 단위가 메서드 임을 생각하면 
+
+메서드 마다 @Transactional 어노테이션과 트랜잭션 속성을 설정해야 하는 중복코드를 생상하게 된다.
+
+이를 개선하기 위해 스프링은 대체정책이라는 개념을 제공하여 중복코드를 줄일 수 있도록 돕는다.
+
+![](images/012.png)
+
+- `대체 정책`
+
+스프링은 @Trnsactional을 적용할 때 4 단계의 대체정책을 이용하여 해준다.
+
+메서드의 속성을 확인할 때 `타깃 메서드` -> `타킷 클래스` -> `선언 메서드` -> `선언 타입`의 순서에 따라 @Transactional이 적용되었는지 차례로 확인하고 가장 먼저 발견되는 속성정보를 사용하게 하는 방법이다.
+
+`@Transactional`은 먼저 타입 레벨에 정의되고 `공통 속성`을 따르지 않는 메서드에 대해서만 메서드 레벨에 다시 `@Transactional`을 부여해주는 식으로 사용해야 한다.
+
+기본적으로 @Transactional 적용 대상은 클라이언트가 사용하는 인터페이스에 정의한 메서드이므로 @Transactional도 타깃 클래스보다는 인터페이스에 두는게 바람직하다.
+
+하지만 인터페이스를 사용하는 프록시 방식의 AOP가 아닌 방식으로 트랜잭션을 적용하면 인터페이스에 정의한 @Transactional은 무시되기 때문에 안전하게 타깃 클래스에 @Transactional을 두는 방법을 `권장`한다.
+
+프록시 방식 AOP의 종류와 특징, 또는 비 프록시 방식 AOP의 동작 원리를 잘 이해하고 있고 그에따라 @Transactional의 적용 대상을 적절하게 변경해줄 확신이 있거나, 반드시 인터페이스를 사용하는 타깃에만 트랜잭션을 적용하겠다는 확신이 있다면 인터페이스에 @Transactional을 적용하고, 그게 아니라면 타깃 클래스와 타깃 메서드에 적용하는 편이 좋다.
+
+- `트랜잭션 어노테이션 사용을 위한 설정`
+
+@Transactional을 이용한 트랜잭션 속성을 사용하는데 필요한 설정은 어드바이저, 어드바이스, 포인트컷, 어노테이션을 이용하는 트랜잭션 속성정보가 한번에 등록된다.
+
+xml 설정의 경우 `<tx:annotation-driven />` Java Config의 경우 `@EnableTransactionManagement`를 사용한다.
+
+> **6.7.2 트랜잭션 어노테이션 적용**
+
+어노테이션에 대한 대체 정책의 순서는 타킷 클래스가 인터페이스보다 우선하므로 모든 메서드의 트랜잭션은 디폴트 속성을 갖게 된다.
+
+
+```java
+@Transactional // 인터페이스 레벨에 디폴트 속성으로 적용
+public interface UserService {
+    void add(User user);
+    void deleteAll();
+    void update(User user);
+    void upgradeLevels();
+    
+    @Transactional(readOnly = true) // 읽기 전용 속성의 트랜잭션이 필요한 경우 메서드 레벨에 적용
+    User get(String id);
+
+    @Transactional(readOnly = true)
+    List<User> getAll();
+}
+```
+
+```java
+@Transactiional // 클래스 레벨에 트랜잭션 디폴트 속성으로 적용
+public class UserServiceImpl implements UserService {
+    // ...
+}
+```
+
+위 트랜잭션 적용에 대해서 필히 테스트 코드를 작성하여 트랜잭션의 대체정책이 기대한 대로 동작하는지 확인해야 한다.
+
+예를 들어 인터페이스에는 getAll() 메서드를 읽기전용 속성을 갖고 있으나 타깃 클래스에 디폴트 속성을 갖고 있는 점을 확인하기 위해
+
+읽기 전용 속성을 검증하는 테스트 코드를 작성해 보는 것이다.
 
 ### 6.8 트랜잭션 지원 테스트
 
@@ -434,7 +545,7 @@ public class UserServiceTest {
 
 테스트는 어떤 경우에도 서로 의존하면 안된다. 테스트가 진행되는 순서나 앞의 테스트의 성공 여부가 다음 테스트에 영향을 주는 것도 허용하지 않는다.
 
-어더한 순서로 진행되더라도 일정한 결과를 내야 한다.
+어떠한 순서로 진행되더라도 일정한 결과를 내야 한다.
 
 ### 6.9 정리
 
