@@ -60,7 +60,7 @@ public class TransactionAdviceConfig {
         return defaultPointcutAdvisor;
     }
 
-    @Bean
+    @Bean(value = "userService")
     public UserService userService() throws ClassNotFoundException {
         ProxyFactoryBean proxyFactoryBean = new ProxyFactoryBean();
         proxyFactoryBean.setTarget(getTarget());

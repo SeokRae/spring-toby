@@ -44,9 +44,6 @@ class TransactionAdviceTest {
     @Autowired
     private UserDao userDao;
 
-    @Autowired
-    private UserService userService;
-
     private List<User> users;
 
     @BeforeEach
