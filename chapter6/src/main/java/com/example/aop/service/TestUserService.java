@@ -3,6 +3,7 @@ package com.example.aop.service;
 
 import com.example.aop.domain.User;
 import com.example.aop.exception.TestUserServiceException;
+import org.springframework.stereotype.Service;
 
 public class TestUserService extends UserServiceImpl {
 
