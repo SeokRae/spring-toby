@@ -100,3 +100,9 @@ project(":chapter6") {
         implementation 'org.springframework.boot:spring-boot-starter-aop'
     }
 }
+
+project(":chapter7") {
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+    }
+}
